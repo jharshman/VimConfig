@@ -1,26 +1,46 @@
 """"""""""""""""""""""""""""""""""""
+"" Vim Configuration
 ""
-"" vimrc configuration
-""
-""
-""
-""
+"" Maintainer: Josh Harshman
+"" Version: 0.1
+"" Based off: https://amix.dk/vim/vimrc.html
+"" 
+"" Config Sections:
+"" + General
+"" + UI
+"" + Colors & Fonts 
+"" + Files
+"" + Text
+"" + Status
+"" + Editing
+"" + Searching
+"" + Spellcheck
+"" + Functions
 """"""""""""""""""""""""""""""""""""
 
-""""""""""""""""""""""""""""""""""""
-" General Settings
-""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => General
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set history=500
 filetype plugin on
 filetype indent on
 set autoread
+let mapleader = ","
+let g:mapleader = ","
+nmap <leader>w :w!<cr>
 
-""""""""""""""""""""""""""""""""""""
-" VIM UI Settings
-""""""""""""""""""""""""""""""""""""
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => UI
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set so=7
 set wildmenu
+set wildignore=*.o,*~,*.pyc
 set ruler
+set cmdheight=2
 set hid
+set backspace=eol,start,indent
+set whichwrap+=<,>,h,l
 set ignorecase
 set smartcase
 set hlsearch
@@ -32,9 +52,9 @@ set mat=2
 set noerrorbells
 set novisualbell
 
-""""""""""""""""""""""""""""""""""""
-" Colors and Stuffs
-""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Colors & Fonts 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 syntax enable
 set number
 set background=dark
@@ -47,28 +67,187 @@ endif
 set encoding=utf8
 set ffs=unix,dos,mac
 
-""""""""""""""""""""""""""""""""""""
-" Files and undoing changes
-""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Files
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set nobackup
 set nowb
 set noswapfile
 
-""""""""""""""""""""""""""""""""""""
-" Indents and whatnot
-""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Text 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set expandtab
 set smarttab
-" Linebreak on 500 characters
+set shiftwidth=4
+set tabstop=4
 set lbr
 set tw=500
 set ai "Auto indent
 set si "Smart indent
 set wrap "Wrap lines
+"filetype plugin indent on
 
-""""""""""""""""""""""""""""""""""""
-" Status Line Stuff
-""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Visual Mode
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+vnoremap <silent> * :call VisualSelection('f')<CR>
+vnoremap <silent> # :call VisualSelection('b')<CR>
+
+" Tabs, Windows, and Buffers
+map j gj
+map k gk
+map <space> /
+map <c-space> ?
+map <silent> <leader><cr> :noh<cr>
+
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-h> <C-W>h
+map <C-l> <C-W>l
+
+map <leader>bd :Bclose<cr>
+map <leader>ba :1,1000 bd!<cr>
+map <leader>tn :tabnew<cr>
+map <leader>to :tabonly<cr>
+map <leader>tc :tabclose<cr>
+map <leader>tm :tabmove
+map <leader>te :tabedit <c-r>=expand("%:p:h")<cr>/
+map <leader>cd :cd %:p:h<cr>:pwd<cr>
+
+try
+    set switchbuf=useopen,usetab,newtab
+    set stal=2
+catch
+endtry
+
+autocmd BufReadPost *
+     \ if line("'\"") > 0 && line("'\"") <= line("$") |
+     \      exe "normal! g`\"" |
+     \ endif
+
+set viminfo^=%
+
+
+" Status 
 set laststatus=2
-set statusline=%t[%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
+set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Editing
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+map 0 ^
+
+nmap <M-j> mz:m+<cr>`z
+nmap <M-k> mz:m-2<cr>`z
+vmap <M-j> :m'>+<cr>`<my`>mzgv`yo`z
+vmap <M-k> :m'<-2<cr>`>my`<mzgv`yo`z
+
+if has("mac") || has("macunix")
+    nmap <D-j> <M-j>
+    nmap <D-k> <M-k>
+    vmap <D-j> <M-j>
+    vmap <D-k> <M-k>
+endif
+
+func! DeleteTrailingWS()
+    exe "normal mz"
+    %s/\s\+$//ge
+    exe "normal `z"
+endfunc
+autocmd BufWrite *.py :call DeleteTrailingWS()
+autocmd BufWrite *.coffee :call DeleteTrailingWS()
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Searching
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+vnoremap <silent> gv :call VisualSelection('gv')<CR>
+map <leader>g :vimgrep // **/*.<left><left><left><left><left><left><left>
+map <leader><space> :vimgrep // <C-R>%<C-A><right><right><right><right><right><right><right><right><right>
+vnoremap <silent> <leader>r :call VisualSelection('replace')<CR>
+
+" Do :help cope if you are unsure what cope is. It's super useful!
+"
+" When you search with vimgrep, display your results in cope by doing:
+"    <leader>cc
+" 
+" To go to the next search result do:
+"   <leader>n
+"
+" To go to the previous search results do:
+"   <leader>p
+map <leader>cc :botright cope<cr>
+map <leader>co ggVGy:tabnew<cr>:set syntax=qf<cr>pgg
+map <leader>n :cn<cr>
+map <leader>p :cp<cr>
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Spell Check
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"Pressing ,ss will toggle and untoggle spell checking
+map <leader>ss :setlocal spell!<cr>
+" Shortcuts using <leader>
+map <leader>sn ]s
+map <leader>sp [s
+map <leader>sa zg
+map <leader>s? z=
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Functions
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+function! CmdLine(str)
+    exe "menu Foo.Bar :" . a:str
+    emenu Foo.Bar
+    unmenu Foo
+endfunction
+
+function! VisualSelection(direction) range
+    let l:saved_reg = @"
+    execute "normal! vgvy"
+
+    let l:pattern = escape(@", '\\/.*$^~[]')
+    let l:pattern = substitute(l:pattern, "\n$", "", "")
+
+    if a:direction == 'b'
+        execute "normal ?" . l:pattern . "^M"
+    elseif a:direction == 'gv'
+        call CmdLine("vimgrep " . '/'. l:pattern . '/' . ' **/*.')
+    elseif a:direction == 'replace'
+        call CmdLine("%s" . '/'. l:pattern . '/')
+    elseif a:direction == 'f'
+        execute "normal /" . l:pattern . "^M"
+    endif
+
+    let @/ = l:pattern
+    let @" = l:saved_reg
+endfunction
+
+
+" Returns true if paste mode is enabled
+function! HasPaste()
+    if &paste
+        return 'PASTE MODE  '
+    en
+    return ''
+endfunction
+
+" Don't close window, when deleting a buffer
+command! Bclose call <SID>BufcloseCloseIt()
+function! <SID>BufcloseCloseIt()
+   let l:currentBufNum = bufnr("%")
+   let l:alternateBufNum = bufnr("#")
+
+   if buflisted(l:alternateBufNum)
+     buffer #
+   else
+     bnext
+   endif
+
+   if bufnr("%") == l:currentBufNum
+     new
+   endif
+
+   if buflisted(l:currentBufNum)
+     execute("bdelete! ".l:currentBufNum)
+   endif
+endfunction
